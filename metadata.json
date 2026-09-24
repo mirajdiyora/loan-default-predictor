@@ -38,12 +38,12 @@
     ]
   },
   "metrics": {
-    "Accuracy": 0.6956,
-    "Precision": 0.2293,
-    "Recall": 0.6866,
-    "F1_Score": 0.3438,
-    "ROC_AUC": 0.7579,
-    "Model_Type": "Level-50 HistGradientBoosting (High Correlation Focused)",
+    "Accuracy": 0.7719,
+    "Precision": 0.267,
+    "Recall": 0.5522,
+    "F1_Score": 0.3599,
+    "ROC_AUC": 0.7508,
+    "Model_Type": "RandomForestClassifier (High Correlation Focused)",
     "Training_Samples": 204277,
     "Test_Samples": 51070
   },
