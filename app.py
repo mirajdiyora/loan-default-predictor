@@ -13,77 +13,147 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS for UI styling
+# Comprehensive Global CSS Overrides for Bulletproof Aesthetics & Contrast on local + Streamlit Cloud
 st.markdown("""
 <style>
-    /* Gradient Headers & Titles */
+    /* Force main app background & base text color */
+    .stApp {
+        background-color: #0F172A !important;
+        color: #F8FAFC !important;
+        font-family: 'Inter', system-ui, -apple-system, sans-serif !important;
+    }
+    
+    /* Main Content Headers */
     .main-title {
-        font-size: 2.5rem;
-        font-weight: 800;
-        background: linear-gradient(90deg, #6366F1, #8B5CF6, #EC4899);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        margin-bottom: 0.2rem;
+        font-size: 2.6rem !important;
+        font-weight: 800 !important;
+        background: linear-gradient(90deg, #818CF8, #C084FC, #F472B6) !important;
+        -webkit-background-clip: text !important;
+        -webkit-text-fill-color: transparent !important;
+        margin-bottom: 0.3rem !important;
     }
     .sub-title {
-        color: #94A3B8;
-        font-size: 1.1rem;
-        margin-bottom: 2rem;
+        color: #CBD5E1 !important;
+        font-size: 1.1rem !important;
+        margin-bottom: 2rem !important;
+    }
+
+    /* Force all headings (h1, h2, h3, h4) to be crisp white/indigo */
+    h1, h2, h3, h4, h5, h6, .stMarkdown h3 {
+        color: #F8FAFC !important;
+        font-weight: 700 !important;
     }
     
-    /* Custom Card Containers */
-    .stCard {
-        background-color: #1E293B;
-        border-radius: 12px;
-        padding: 1.5rem;
-        border: 1px solid #334155;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    /* Force all widget labels (Age, Income, Education Level, etc.) to be highly visible */
+    label, .stWidgetLabel, div[data-testid="stWidgetLabel"] p, label p {
+        color: #E2E8F0 !important;
+        font-size: 0.95rem !important;
+        font-weight: 600 !important;
+        margin-bottom: 0.3rem !important;
+    }
+
+    /* Input fields (Number input, Selectbox, Text input) styling */
+    input, select, textarea, div[data-baseweb="input"] > div, div[data-baseweb="select"] > div {
+        background-color: #1E293B !important;
+        color: #FFFFFF !important;
+        border: 1px solid #475569 !important;
+        border-radius: 8px !important;
     }
     
-    /* Result Box Styling */
+    /* Dropdown popover list items */
+    div[data-baseweb="popover"], ul[role="listbox"], li[role="option"] {
+        background-color: #1E293B !important;
+        color: #FFFFFF !important;
+    }
+    
+    /* Form Container */
+    div[data-testid="stForm"] {
+        background-color: #1E293B !important;
+        border: 1px solid #334155 !important;
+        border-radius: 14px !important;
+        padding: 1.8rem !important;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3) !important;
+    }
+    
+    /* Form Submit Button & Action Buttons */
+    div[data-testid="stFormSubmitButton"] button, button[kind="primary"] {
+        background: linear-gradient(90deg, #6366F1 0%, #8B5CF6 100%) !important;
+        color: #FFFFFF !important;
+        font-weight: 700 !important;
+        font-size: 1.05rem !important;
+        border: none !important;
+        border-radius: 10px !important;
+        padding: 0.6rem 1.5rem !important;
+        box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4) !important;
+        transition: all 0.2s ease-in-out !important;
+    }
+    div[data-testid="stFormSubmitButton"] button:hover {
+        transform: translateY(-2px) !important;
+        box-shadow: 0 6px 20px rgba(99, 102, 241, 0.6) !important;
+    }
+    
+    /* SIDEBAR STYLING FIX - Force Dark background and Crisp White Text */
+    section[data-testid="stSidebar"] {
+        background-color: #0F172A !important;
+        border-right: 1px solid #334155 !important;
+    }
+    section[data-testid="stSidebar"] * {
+        color: #F8FAFC !important;
+    }
+    section[data-testid="stSidebar"] .stRadio label p {
+        color: #F8FAFC !important;
+        font-size: 1rem !important;
+        font-weight: 500 !important;
+    }
+
+    /* Result Outcome Cards */
     .result-box-approved {
-        background: linear-gradient(135deg, #064E3B 0%, #047857 100%);
-        border: 1px solid #10B981;
-        border-radius: 12px;
-        padding: 1.5rem;
-        color: white;
-        text-align: center;
-        box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.3);
+        background: linear-gradient(135deg, #064E3B 0%, #047857 100%) !important;
+        border: 1px solid #10B981 !important;
+        border-radius: 14px !important;
+        padding: 1.8rem !important;
+        color: #FFFFFF !important;
+        text-align: center !important;
+        box-shadow: 0 10px 20px rgba(16, 185, 129, 0.3) !important;
     }
     .result-box-denied {
-        background: linear-gradient(135deg, #7F1D1D 0%, #B91C1C 100%);
-        border: 1px solid #EF4444;
-        border-radius: 12px;
-        padding: 1.5rem;
-        color: white;
-        text-align: center;
-        box-shadow: 0 10px 15px -3px rgba(239, 68, 68, 0.3);
+        background: linear-gradient(135deg, #7F1D1D 0%, #B91C1C 100%) !important;
+        border: 1px solid #EF4444 !important;
+        border-radius: 14px !important;
+        padding: 1.8rem !important;
+        color: #FFFFFF !important;
+        text-align: center !important;
+        box-shadow: 0 10px 20px rgba(239, 68, 68, 0.3) !important;
     }
     
     /* Metric Cards */
     .metric-card {
-        background: #1E293B;
-        border-left: 4px solid #6366F1;
-        padding: 1rem;
-        border-radius: 8px;
-        margin-bottom: 1rem;
+        background: #1E293B !important;
+        border-left: 4px solid #6366F1 !important;
+        padding: 1.2rem !important;
+        border-radius: 10px !important;
+        margin-bottom: 1rem !important;
+        border: 1px solid #334155 !important;
     }
     .metric-val {
-        font-size: 1.8rem;
-        font-weight: 700;
-        color: #F8FAFC;
+        font-size: 2rem !important;
+        font-weight: 800 !important;
+        color: #F8FAFC !important;
     }
     .metric-lbl {
-        font-size: 0.85rem;
-        color: #94A3B8;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
+        font-size: 0.85rem !important;
+        color: #94A3B8 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.05em !important;
+        font-weight: 600 !important;
     }
     
-    /* Sidebar Styling */
-    section[data-testid="stSidebar"] {
-        background-color: #0F172A;
-        border-right: 1px solid #334155;
+    /* Dataframes & Tables */
+    div[data-testid="stDataFrame"] {
+        background-color: #1E293B !important;
+        border-radius: 10px !important;
+        padding: 0.5rem !important;
+        border: 1px solid #334155 !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -145,7 +215,6 @@ def encode_inputs(raw_dict, feature_names):
             row[num] = float(raw_dict[num])
             
     # Categorical One-Hot Encoding mapping matching drop_first=True
-    # Education
     edu = raw_dict.get("Education")
     if edu == "High School":
         row["Education_High School"] = 1
@@ -154,7 +223,6 @@ def encode_inputs(raw_dict, feature_names):
     elif edu == "PhD":
         row["Education_PhD"] = 1
         
-    # EmploymentType
     emp = raw_dict.get("EmploymentType")
     if emp == "Part-time":
         row["EmploymentType_Part-time"] = 1
@@ -163,22 +231,18 @@ def encode_inputs(raw_dict, feature_names):
     elif emp == "Unemployed":
         row["EmploymentType_Unemployed"] = 1
         
-    # MaritalStatus
     mar = raw_dict.get("MaritalStatus")
     if mar == "Married":
         row["MaritalStatus_Married"] = 1
     elif mar == "Single":
         row["MaritalStatus_Single"] = 1
         
-    # HasMortgage
     if raw_dict.get("HasMortgage") == "Yes":
         row["HasMortgage_Yes"] = 1
         
-    # HasDependents
     if raw_dict.get("HasDependents") == "Yes":
         row["HasDependents_Yes"] = 1
         
-    # LoanPurpose
     purp = raw_dict.get("LoanPurpose")
     if purp == "Business":
         row["LoanPurpose_Business"] = 1
@@ -189,7 +253,6 @@ def encode_inputs(raw_dict, feature_names):
     elif purp == "Other":
         row["LoanPurpose_Other"] = 1
         
-    # HasCoSigner
     if raw_dict.get("HasCoSigner") == "Yes":
         row["HasCoSigner_Yes"] = 1
         
@@ -264,7 +327,7 @@ if nav_option == "🎯 Single Applicant Predictor":
                 st.markdown(f"""
                 <div class='result-box-approved'>
                     <h2>✅ LOW DEFAULT RISK - RECOMMENDED FOR APPROVAL</h2>
-                    <h1 style='font-size: 3.5rem; margin: 0;'>{repay_prob:.1f}%</h1>
+                    <h1 style='font-size: 3.5rem; margin: 0; color: #FFFFFF !important;'>{repay_prob:.1f}%</h1>
                     <p style='font-size: 1.1rem; opacity: 0.9;'>Probability of On-Time Loan Repayment</p>
                     <hr style='border-color: rgba(255,255,255,0.2);'>
                     <p>Estimated Default Risk Score: <strong>{default_prob:.1f}%</strong></p>
@@ -274,7 +337,7 @@ if nav_option == "🎯 Single Applicant Predictor":
                 st.markdown(f"""
                 <div class='result-box-denied'>
                     <h2>⚠️ HIGH DEFAULT RISK - CAUTION / DENIAL ADVISED</h2>
-                    <h1 style='font-size: 3.5rem; margin: 0;'>{default_prob:.1f}%</h1>
+                    <h1 style='font-size: 3.5rem; margin: 0; color: #FFFFFF !important;'>{default_prob:.1f}%</h1>
                     <p style='font-size: 1.1rem; opacity: 0.9;'>Probability of Loan Default</p>
                     <hr style='border-color: rgba(255,255,255,0.2);'>
                     <p>Repayment Probability: <strong>{repay_prob:.1f}%</strong></p>
@@ -284,7 +347,6 @@ if nav_option == "🎯 Single Applicant Predictor":
         with res_col2:
             st.markdown("#### 🔍 Key Risk Factors Analysis")
             
-            # Key indicator highlights
             risk_flags = []
             if dti_ratio > 0.5:
                 risk_flags.append(f"🔴 High Debt-To-Income Ratio ({dti_ratio:.2f})")
@@ -358,7 +420,6 @@ elif nav_option == "📁 Batch CSV Predictor":
             st.markdown("---")
             st.subheader("✅ Batch Prediction Results")
             
-            # Summary Metrics
             c1, c2, c3 = st.columns(3)
             c1.metric("Total Applicants", len(out_df))
             c2.metric("Low Risk (Approved)", sum(out_df["Risk_Assessment"] == "Low Risk (Approved)"))
@@ -366,7 +427,6 @@ elif nav_option == "📁 Batch CSV Predictor":
             
             st.dataframe(out_df, use_container_width=True)
             
-            # Download CSV
             csv_data = out_df.to_csv(index=False).encode('utf-8')
             st.download_button(
                 label="📥 Download Predictions CSV",
@@ -382,7 +442,6 @@ elif nav_option == "📊 Model Insights & Performance":
     st.markdown("<h1 class='main-title'>Model Analytics & Metrics</h1>", unsafe_allow_html=True)
     st.markdown("<p class='sub-title'>Detailed breakdown of model evaluation metrics, accuracy, recall, and feature importance.</p>", unsafe_allow_html=True)
     
-    # Metrics Row
     m = metadata["metrics"]
     c1, c2, c3, c4 = st.columns(4)
     
@@ -452,31 +511,14 @@ elif nav_option == "🚀 Deployment Guide & Link":
     st.success("🎉 All required files (`model.pkl`, `app.py`, `requirements.txt`, `.streamlit/config.toml`) have been generated!")
     
     st.markdown("""
-    ### 🌐 Option 1: Streamlit Community Cloud (Recommended - 100% Free & Fast)
+    ### 🌐 Streamlit Community Cloud (100% Free & Fast)
     
     1. **Upload Code to GitHub**:
-       - Create a new repository on GitHub (e.g. `loan-default-streamlit`).
-       - Push all files from this folder (`app.py`, `model.pkl`, `feature_names.json`, `metadata.json`, `requirements.txt`, `.streamlit/`).
+       - Create a new repository on GitHub (e.g. `loan-default-predictor`).
+       - Upload `app.py`, `model.pkl`, `feature_names.json`, `metadata.json`, `requirements.txt`, `.streamlit/`.
        
     2. **Deploy on Streamlit Cloud**:
-       - Visit **[share.streamlit.io](https://share.streamlit.io)** and log in with your GitHub account.
-       - Click **"New app"**.
-       - Select your repository: `loan-default-streamlit`
-       - Main file path: `app.py`
-       - Click **"Deploy!"**
-       
-    3. **Your Live Link**:
-       - Once deployed, Streamlit gives you a public shareable URL like:
-         `https://your-app-name.streamlit.app`
-    
-    ---
-    
-    ### 🤖 Option 2: Hugging Face Spaces (Free Alternative)
-    
-    1. Go to **[huggingface.co/spaces](https://huggingface.co/spaces)** and click **"Create new Space"**.
-    2. Select **Streamlit** as the Space SDK.
-    3. Upload `app.py`, `model.pkl`, `requirements.txt`, and related json files.
-    4. Your app will build automatically and yield a public link like:
-       `https://huggingface.co/spaces/yourusername/loan-default-predictor`
+       - Visit **[share.streamlit.io](https://share.streamlit.io)** and log in with GitHub.
+       - Click **"New app"**, select your repository, set main file to `app.py`, and click **Deploy!**
     """)
 
