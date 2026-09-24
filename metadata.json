@@ -38,13 +38,14 @@
     ]
   },
   "metrics": {
-    "Accuracy": 0.7719,
-    "Precision": 0.267,
-    "Recall": 0.5522,
-    "F1_Score": 0.3599,
-    "ROC_AUC": 0.7508,
-    "Model_Type": "RandomForestClassifier (High Correlation Focused)",
-    "Training_Samples": 204277,
+    "Accuracy": 0.728,
+    "Precision": 0.2266,
+    "Recall": 0.5561,
+    "F1_Score": 0.322,
+    "ROC_AUC": 0.7194,
+    "Optimal_Threshold": 0.3898,
+    "Model_Type": "SMOTE + RandomForest Ensemble (Threshold Optimized)",
+    "Training_Samples": 270832,
     "Test_Samples": 51070
   },
   "feature_names": [
@@ -74,6 +75,7 @@
     "MaritalStatus_Single",
     "EmploymentType_Part-time"
   ],
+  "optimal_threshold": 0.3898,
   "top_correlations": {
     "Loan_To_Income": 0.179,
     "Age": 0.1678,

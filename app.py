@@ -44,7 +44,7 @@ st.markdown("""
         font-weight: 700 !important;
     }
     
-    /* Force all widget labels (Age, Income, Education Level, etc.) to be highly visible */
+    /* Force all widget labels to be highly visible */
     label, .stWidgetLabel, div[data-testid="stWidgetLabel"] p, label p {
         color: #E2E8F0 !important;
         font-size: 0.95rem !important;
@@ -52,7 +52,7 @@ st.markdown("""
         margin-bottom: 0.3rem !important;
     }
 
-    /* Input fields (Number input, Selectbox, Text input) styling */
+    /* Input fields styling */
     input, select, textarea, div[data-baseweb="input"] > div, div[data-baseweb="select"] > div {
         background-color: #1E293B !important;
         color: #FFFFFF !important;
@@ -166,7 +166,7 @@ def load_assets():
     metadata_path = "metadata.json"
     
     if not os.path.exists(model_path):
-        st.error("❌ Model file `model.pkl` not found! Please run `python train_level50.py` first.")
+        st.error("❌ Model file `model.pkl` not found! Please run `python train_master_level50.py` first.")
         st.stop()
         
     model = joblib.load(model_path)
@@ -180,6 +180,7 @@ def load_assets():
     return model, feature_names, metadata
 
 model, feature_names, metadata = load_assets()
+optimal_thresh = metadata.get("optimal_threshold", 0.3898)
 
 # Sidebar Navigation
 with st.sidebar:
@@ -202,13 +203,12 @@ with st.sidebar:
     st.caption(f"**Model:** {metadata['metrics']['Model_Type']}")
     st.caption(f"**Recall:** {metadata['metrics']['Recall'] * 100:.1f}%")
     st.caption(f"**ROC-AUC:** {metadata['metrics']['ROC_AUC']:.3f}")
+    st.caption(f"**Decision Threshold:** {optimal_thresh}")
 
 # Helper function to preprocess single dictionary into high correlation features
 def encode_inputs(raw_dict, feature_names):
-    # Base dictionary
     base = {}
     
-    # 1. Base numericals
     age = float(raw_dict.get("Age", 42))
     income = float(raw_dict.get("Income", 75000))
     loan_amount = float(raw_dict.get("LoanAmount", 50000))
@@ -229,7 +229,6 @@ def encode_inputs(raw_dict, feature_names):
     base["LoanTerm"] = loan_term
     base["DTIRatio"] = dti_ratio
     
-    # 2. Advanced Engineered Ratios (Top Risk Correlation Factors)
     monthly_income = income / 12.0
     est_monthly_pay = (loan_amount * (1 + (interest_rate / 100))) / loan_term
     
@@ -240,7 +239,6 @@ def encode_inputs(raw_dict, feature_names):
     base["Employment_Stability_Ratio"] = months_emp / (age * 12 + 1)
     base["Credit_Risk_Score"] = (850 - credit_score) * dti_ratio * (1 + interest_rate / 100)
 
-    # 3. Categorical one-hot mapping matching train_level50.py
     edu = raw_dict.get("Education")
     base["Education_High School"] = 1 if edu == "High School" else 0
     base["Education_Master's"] = 1 if edu == "Master's" else 0
@@ -266,7 +264,6 @@ def encode_inputs(raw_dict, feature_names):
     
     base["HasCoSigner_Yes"] = 1 if raw_dict.get("HasCoSigner") == "Yes" else 0
 
-    # Build row DataFrame matching selected feature_names order
     row = {feat: base.get(feat, 0) for feat in feature_names}
     df_single = pd.DataFrame([row], columns=feature_names)
     return df_single
@@ -276,7 +273,7 @@ def encode_inputs(raw_dict, feature_names):
 # ==========================================
 if nav_option == "🎯 Single Applicant Predictor":
     st.markdown("<h1 class='main-title'>Loan Default Risk Assessor</h1>", unsafe_allow_html=True)
-    st.markdown("<p class='sub-title'>Enter applicant financial and personal details to generate real-time loan default probability powered by Level-50 Risk Correlation AI.</p>", unsafe_allow_html=True)
+    st.markdown(f"<p class='sub-title'>SMOTE Balanced & Optimal Threshold ({optimal_thresh}) Precision-Recall AI Engine.</p>", unsafe_allow_html=True)
     
     with st.form("loan_input_form"):
         col1, col2, col3 = st.columns(3)
@@ -322,12 +319,13 @@ if nav_option == "🎯 Single Applicant Predictor":
         
         encoded_df = encode_inputs(raw_data, feature_names)
         
-        # Predict class & probability
-        pred_class = model.predict(encoded_df)[0]
+        # Predict probability & compare against optimal decision threshold
         pred_proba = model.predict_proba(encoded_df)[0]
-        
         default_prob = pred_proba[1] * 100
         repay_prob = pred_proba[0] * 100
+        
+        # Classification decision based on optimal threshold
+        pred_class = 1 if (default_prob / 100.0) >= optimal_thresh else 0
         
         st.markdown("---")
         st.subheader("📊 Assessment Summary & Risk Report")
@@ -342,7 +340,7 @@ if nav_option == "🎯 Single Applicant Predictor":
                     <h1 style='font-size: 3.5rem; margin: 0; color: #FFFFFF !important;'>{repay_prob:.1f}%</h1>
                     <p style='font-size: 1.1rem; opacity: 0.9;'>Probability of On-Time Loan Repayment</p>
                     <hr style='border-color: rgba(255,255,255,0.2);'>
-                    <p>Estimated Default Risk Score: <strong>{default_prob:.1f}%</strong></p>
+                    <p>Estimated Default Risk Score: <strong>{default_prob:.1f}%</strong> (Cutoff Threshold: {optimal_thresh*100:.1f}%)</p>
                 </div>
                 """, unsafe_allow_html=True)
             else:
@@ -352,7 +350,7 @@ if nav_option == "🎯 Single Applicant Predictor":
                     <h1 style='font-size: 3.5rem; margin: 0; color: #FFFFFF !important;'>{default_prob:.1f}%</h1>
                     <p style='font-size: 1.1rem; opacity: 0.9;'>Probability of Loan Default</p>
                     <hr style='border-color: rgba(255,255,255,0.2);'>
-                    <p>Repayment Probability: <strong>{repay_prob:.1f}%</strong></p>
+                    <p>Repayment Probability: <strong>{repay_prob:.1f}%</strong> (Cutoff Threshold: {optimal_thresh*100:.1f}%)</p>
                 </div>
                 """, unsafe_allow_html=True)
                 
@@ -420,8 +418,8 @@ elif nav_option == "📁 Batch CSV Predictor":
             for idx, row in batch_df.iterrows():
                 row_dict = row.to_dict()
                 enc = encode_inputs(row_dict, feature_names)
-                pred = model.predict(enc)[0]
                 prob = model.predict_proba(enc)[0][1]
+                pred = 1 if prob >= optimal_thresh else 0
                 
                 results_list.append("High Risk (Default)" if pred == 1 else "Low Risk (Approved)")
                 probs_list.append(round(prob * 100, 2))
@@ -482,8 +480,8 @@ elif nav_option == "📊 Model Insights & Performance":
     with c4:
         st.markdown(f"""
         <div class='metric-card'>
-            <div class='metric-lbl'>ROC-AUC Score</div>
-            <div class='metric-val'>{m['ROC_AUC']:.4f}</div>
+            <div class='metric-lbl'>Optimal Cutoff Threshold</div>
+            <div class='metric-val'>{m.get('Optimal_Threshold', optimal_thresh)}</div>
         </div>
         """, unsafe_allow_html=True)
         
@@ -503,14 +501,14 @@ elif nav_option == "📊 Model Insights & Performance":
             st.info("Correlation analysis data loaded.")
             
     with col_b:
-        st.subheader("ℹ️ Dataset Information")
+        st.subheader("ℹ️ Dataset & Pipeline Information")
         st.json({
             "Dataset": "Loan_default.csv",
             "Total Records": "255,347",
-            "Training Split": "204,277 (80%)",
-            "Test Split": "51,070 (20%)",
-            "Model Architecture": "HistGradientBoosting + Feature Engineering",
-            "Class Balance": "Default: 11.6%, Non-Default: 88.4%"
+            "Imbalance Technique": "SMOTE (Synthetic Minority Over-sampling)",
+            "Ensemble Classifier": "RandomForest (n_estimators=100, class_weight=balanced)",
+            "Threshold Optimization": f"Precision-Recall Curve (Optimal Cutoff = {optimal_thresh})",
+            "Feature Engineering": "Loan_To_Income, Payment_To_Income, Credit_Risk_Score"
         })
 
 # ==========================================
@@ -520,16 +518,15 @@ elif nav_option == "🚀 Deployment Guide & Link":
     st.markdown("<h1 class='main-title'>Deploying Your App & Web Link</h1>", unsafe_allow_html=True)
     st.markdown("<p class='sub-title'>Follow these simple steps to deploy this app online and get a public live URL for free!</p>", unsafe_allow_html=True)
     
-    st.success("🎉 Level-50 Model & files (`model.pkl`, `feature_names.json`, `metadata.json`, `app.py`) are ready!")
+    st.success("🎉 All files (`model.pkl`, `feature_names.json`, `metadata.json`, `app.py`) are fully updated and compressed!")
     
     st.markdown("""
-    ### 🌐 Streamlit Community Cloud (100% Free & Fast)
+    ### 🌐 Streamlit Community Cloud Deployment
     
-    1. **Upload Code to GitHub**:
-       - Go to your repository on GitHub.
-       - Upload the updated `model.pkl`, `feature_names.json`, `metadata.json`, and `app.py`.
+    1. **Upload Files to GitHub**:
+       - Go to your repository on GitHub (`mirajdiyora/loan-default-predictor`).
+       - Upload the updated `model.pkl` (14.4 MB), `feature_names.json`, `metadata.json`, and `app.py`.
        
-    2. **Automatic Deployment**:
-       - Streamlit Cloud will automatically detect the changes and update your live website in ~30 seconds!
+    2. **Auto Redeployment**:
+       - Streamlit Cloud will auto-redeploy your live app in ~30 seconds!
     """)
-
