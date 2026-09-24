@@ -166,7 +166,7 @@ def load_assets():
     metadata_path = "metadata.json"
     
     if not os.path.exists(model_path):
-        st.error("❌ Model file `model.pkl` not found! Please run `python train_model.py` first.")
+        st.error("❌ Model file `model.pkl` not found! Please run `python train_level50.py` first.")
         st.stop()
         
     model = joblib.load(model_path)
@@ -203,59 +203,71 @@ with st.sidebar:
     st.caption(f"**Recall:** {metadata['metrics']['Recall'] * 100:.1f}%")
     st.caption(f"**ROC-AUC:** {metadata['metrics']['ROC_AUC']:.3f}")
 
-# Helper function to preprocess single dictionary into 24 features
+# Helper function to preprocess single dictionary into high correlation features
 def encode_inputs(raw_dict, feature_names):
-    # Initialize zero dictionary for all 24 features
-    row = {feat: 0 for feat in feature_names}
+    # Base dictionary
+    base = {}
     
-    # Numerical features directly assigned
-    num_feats = ["Age", "Income", "LoanAmount", "CreditScore", "MonthsEmployed", "NumCreditLines", "InterestRate", "LoanTerm", "DTIRatio"]
-    for num in num_feats:
-        if num in raw_dict:
-            row[num] = float(raw_dict[num])
-            
-    # Categorical One-Hot Encoding mapping matching drop_first=True
+    # 1. Base numericals
+    age = float(raw_dict.get("Age", 42))
+    income = float(raw_dict.get("Income", 75000))
+    loan_amount = float(raw_dict.get("LoanAmount", 50000))
+    credit_score = float(raw_dict.get("CreditScore", 680))
+    months_emp = float(raw_dict.get("MonthsEmployed", 60))
+    num_credit = float(raw_dict.get("NumCreditLines", 3))
+    interest_rate = float(raw_dict.get("InterestRate", 10.5))
+    loan_term = float(raw_dict.get("LoanTerm", 36))
+    dti_ratio = float(raw_dict.get("DTIRatio", 0.35))
+    
+    base["Age"] = age
+    base["Income"] = income
+    base["LoanAmount"] = loan_amount
+    base["CreditScore"] = credit_score
+    base["MonthsEmployed"] = months_emp
+    base["NumCreditLines"] = num_credit
+    base["InterestRate"] = interest_rate
+    base["LoanTerm"] = loan_term
+    base["DTIRatio"] = dti_ratio
+    
+    # 2. Advanced Engineered Ratios (Top Risk Correlation Factors)
+    monthly_income = income / 12.0
+    est_monthly_pay = (loan_amount * (1 + (interest_rate / 100))) / loan_term
+    
+    base["Loan_To_Income"] = loan_amount / (income + 1)
+    base["Monthly_Income"] = monthly_income
+    base["Estimated_Monthly_Payment"] = est_monthly_pay
+    base["Payment_To_Income_Ratio"] = est_monthly_pay / (monthly_income + 1)
+    base["Employment_Stability_Ratio"] = months_emp / (age * 12 + 1)
+    base["Credit_Risk_Score"] = (850 - credit_score) * dti_ratio * (1 + interest_rate / 100)
+
+    # 3. Categorical one-hot mapping matching train_level50.py
     edu = raw_dict.get("Education")
-    if edu == "High School":
-        row["Education_High School"] = 1
-    elif edu == "Master's":
-        row["Education_Master's"] = 1
-    elif edu == "PhD":
-        row["Education_PhD"] = 1
-        
+    base["Education_High School"] = 1 if edu == "High School" else 0
+    base["Education_Master's"] = 1 if edu == "Master's" else 0
+    base["Education_PhD"] = 1 if edu == "PhD" else 0
+    
     emp = raw_dict.get("EmploymentType")
-    if emp == "Part-time":
-        row["EmploymentType_Part-time"] = 1
-    elif emp == "Self-employed":
-        row["EmploymentType_Self-employed"] = 1
-    elif emp == "Unemployed":
-        row["EmploymentType_Unemployed"] = 1
-        
+    base["EmploymentType_Part-time"] = 1 if emp == "Part-time" else 0
+    base["EmploymentType_Self-employed"] = 1 if emp == "Self-employed" else 0
+    base["EmploymentType_Unemployed"] = 1 if emp == "Unemployed" else 0
+    
     mar = raw_dict.get("MaritalStatus")
-    if mar == "Married":
-        row["MaritalStatus_Married"] = 1
-    elif mar == "Single":
-        row["MaritalStatus_Single"] = 1
-        
-    if raw_dict.get("HasMortgage") == "Yes":
-        row["HasMortgage_Yes"] = 1
-        
-    if raw_dict.get("HasDependents") == "Yes":
-        row["HasDependents_Yes"] = 1
-        
+    base["MaritalStatus_Married"] = 1 if mar == "Married" else 0
+    base["MaritalStatus_Single"] = 1 if mar == "Single" else 0
+    
+    base["HasMortgage_Yes"] = 1 if raw_dict.get("HasMortgage") == "Yes" else 0
+    base["HasDependents_Yes"] = 1 if raw_dict.get("HasDependents") == "Yes" else 0
+    
     purp = raw_dict.get("LoanPurpose")
-    if purp == "Business":
-        row["LoanPurpose_Business"] = 1
-    elif purp == "Education":
-        row["LoanPurpose_Education"] = 1
-    elif purp == "Home":
-        row["LoanPurpose_Home"] = 1
-    elif purp == "Other":
-        row["LoanPurpose_Other"] = 1
-        
-    if raw_dict.get("HasCoSigner") == "Yes":
-        row["HasCoSigner_Yes"] = 1
-        
+    base["LoanPurpose_Business"] = 1 if purp == "Business" else 0
+    base["LoanPurpose_Education"] = 1 if purp == "Education" else 0
+    base["LoanPurpose_Home"] = 1 if purp == "Home" else 0
+    base["LoanPurpose_Other"] = 1 if purp == "Other" else 0
+    
+    base["HasCoSigner_Yes"] = 1 if raw_dict.get("HasCoSigner") == "Yes" else 0
+
+    # Build row DataFrame matching selected feature_names order
+    row = {feat: base.get(feat, 0) for feat in feature_names}
     df_single = pd.DataFrame([row], columns=feature_names)
     return df_single
 
@@ -264,7 +276,7 @@ def encode_inputs(raw_dict, feature_names):
 # ==========================================
 if nav_option == "🎯 Single Applicant Predictor":
     st.markdown("<h1 class='main-title'>Loan Default Risk Assessor</h1>", unsafe_allow_html=True)
-    st.markdown("<p class='sub-title'>Enter applicant financial and personal details to generate real-time loan default probability and credit decision recommendations.</p>", unsafe_allow_html=True)
+    st.markdown("<p class='sub-title'>Enter applicant financial and personal details to generate real-time loan default probability powered by Level-50 Risk Correlation AI.</p>", unsafe_allow_html=True)
     
     with st.form("loan_input_form"):
         col1, col2, col3 = st.columns(3)
@@ -345,9 +357,12 @@ if nav_option == "🎯 Single Applicant Predictor":
                 """, unsafe_allow_html=True)
                 
         with res_col2:
-            st.markdown("#### 🔍 Key Risk Factors Analysis")
+            st.markdown("#### 🔍 Top Risk Drivers Identified")
             
             risk_flags = []
+            lti_ratio = loan_amount / (income + 1)
+            if lti_ratio > 0.8:
+                risk_flags.append(f"🔴 High Loan-to-Income Ratio ({lti_ratio:.2f})")
             if dti_ratio > 0.5:
                 risk_flags.append(f"🔴 High Debt-To-Income Ratio ({dti_ratio:.2f})")
             if credit_score < 580:
@@ -356,8 +371,6 @@ if nav_option == "🎯 Single Applicant Predictor":
                 risk_flags.append("🔴 Applicant is currently Unemployed")
             if interest_rate > 18.0:
                 risk_flags.append(f"🔴 High Interest Rate burden ({interest_rate:.1f}%)")
-            if loan_amount > income * 2:
-                risk_flags.append(f"🔴 High Loan-to-Income ratio (${loan_amount:,.0f} vs ${income:,.0f})")
                 
             if risk_flags:
                 for flag in risk_flags:
@@ -440,7 +453,7 @@ elif nav_option == "📁 Batch CSV Predictor":
 # ==========================================
 elif nav_option == "📊 Model Insights & Performance":
     st.markdown("<h1 class='main-title'>Model Analytics & Metrics</h1>", unsafe_allow_html=True)
-    st.markdown("<p class='sub-title'>Detailed breakdown of model evaluation metrics, accuracy, recall, and feature importance.</p>", unsafe_allow_html=True)
+    st.markdown("<p class='sub-title'>Detailed breakdown of Level-50 model evaluation metrics, accuracy, recall, and top correlated features.</p>", unsafe_allow_html=True)
     
     m = metadata["metrics"]
     c1, c2, c3, c4 = st.columns(4)
@@ -479,16 +492,15 @@ elif nav_option == "📊 Model Insights & Performance":
     col_a, col_b = st.columns(2)
     
     with col_a:
-        st.subheader("🌲 Feature Importance Breakdown")
-        if hasattr(model, "feature_importances_"):
-            fi_df = pd.DataFrame({
-                "Feature": feature_names,
-                "Importance": model.feature_importances_
-            }).sort_values("Importance", ascending=True).tail(12)
-            
-            st.bar_chart(fi_df.set_index("Feature"))
+        st.subheader("🔥 Top 10 High Correlation Risk Factors")
+        if "top_correlations" in metadata:
+            corr_df = pd.DataFrame(
+                list(metadata["top_correlations"].items()),
+                columns=["Feature / Driver", "Absolute Correlation"]
+            ).sort_values("Absolute Correlation", ascending=True)
+            st.bar_chart(corr_df.set_index("Feature / Driver"))
         else:
-            st.info("Feature importance chart is available for Tree-based models.")
+            st.info("Correlation analysis data loaded.")
             
     with col_b:
         st.subheader("ℹ️ Dataset Information")
@@ -497,8 +509,8 @@ elif nav_option == "📊 Model Insights & Performance":
             "Total Records": "255,347",
             "Training Split": "204,277 (80%)",
             "Test Split": "51,070 (20%)",
-            "Target Class": "Default (1) vs Non-Default (0)",
-            "Class Distribution": "Default: 11.6%, Non-Default: 88.4%"
+            "Model Architecture": "HistGradientBoosting + Feature Engineering",
+            "Class Balance": "Default: 11.6%, Non-Default: 88.4%"
         })
 
 # ==========================================
@@ -508,17 +520,16 @@ elif nav_option == "🚀 Deployment Guide & Link":
     st.markdown("<h1 class='main-title'>Deploying Your App & Web Link</h1>", unsafe_allow_html=True)
     st.markdown("<p class='sub-title'>Follow these simple steps to deploy this app online and get a public live URL for free!</p>", unsafe_allow_html=True)
     
-    st.success("🎉 All required files (`model.pkl`, `app.py`, `requirements.txt`, `.streamlit/config.toml`) have been generated!")
+    st.success("🎉 Level-50 Model & files (`model.pkl`, `feature_names.json`, `metadata.json`, `app.py`) are ready!")
     
     st.markdown("""
     ### 🌐 Streamlit Community Cloud (100% Free & Fast)
     
     1. **Upload Code to GitHub**:
-       - Create a new repository on GitHub (e.g. `loan-default-predictor`).
-       - Upload `app.py`, `model.pkl`, `feature_names.json`, `metadata.json`, `requirements.txt`, `.streamlit/`.
+       - Go to your repository on GitHub.
+       - Upload the updated `model.pkl`, `feature_names.json`, `metadata.json`, and `app.py`.
        
-    2. **Deploy on Streamlit Cloud**:
-       - Visit **[share.streamlit.io](https://share.streamlit.io)** and log in with GitHub.
-       - Click **"New app"**, select your repository, set main file to `app.py`, and click **Deploy!**
+    2. **Automatic Deployment**:
+       - Streamlit Cloud will automatically detect the changes and update your live website in ~30 seconds!
     """)
 
