@@ -1,0 +1,76 @@
+{
+  "categories": {
+    "Education": [
+      "Bachelor's",
+      "Master's",
+      "High School",
+      "PhD"
+    ],
+    "EmploymentType": [
+      "Full-time",
+      "Unemployed",
+      "Self-employed",
+      "Part-time"
+    ],
+    "MaritalStatus": [
+      "Divorced",
+      "Married",
+      "Single"
+    ],
+    "HasMortgage": [
+      "Yes",
+      "No"
+    ],
+    "HasDependents": [
+      "Yes",
+      "No"
+    ],
+    "LoanPurpose": [
+      "Other",
+      "Auto",
+      "Business",
+      "Home",
+      "Education"
+    ],
+    "HasCoSigner": [
+      "Yes",
+      "No"
+    ]
+  },
+  "metrics": {
+    "Accuracy": 0.6723,
+    "Precision": 0.2078,
+    "Recall": 0.6476,
+    "F1_Score": 0.3146,
+    "ROC_AUC": 0.7098,
+    "Model_Type": "DecisionTreeClassifier (Tuned)",
+    "Training_Samples": 204277,
+    "Test_Samples": 51070
+  },
+  "feature_names": [
+    "Age",
+    "Income",
+    "LoanAmount",
+    "CreditScore",
+    "MonthsEmployed",
+    "NumCreditLines",
+    "InterestRate",
+    "LoanTerm",
+    "DTIRatio",
+    "Education_High School",
+    "Education_Master's",
+    "Education_PhD",
+    "EmploymentType_Part-time",
+    "EmploymentType_Self-employed",
+    "EmploymentType_Unemployed",
+    "MaritalStatus_Married",
+    "MaritalStatus_Single",
+    "HasMortgage_Yes",
+    "HasDependents_Yes",
+    "LoanPurpose_Business",
+    "LoanPurpose_Education",
+    "LoanPurpose_Home",
+    "LoanPurpose_Other",
+    "HasCoSigner_Yes"
+  ]
+}
